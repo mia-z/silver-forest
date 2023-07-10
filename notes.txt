@@ -1,0 +1,5 @@
+to add migration
+dotnet ef --startup-project ..\SilverForest.Api\ migrations add initial
+
+to apply migration
+dotnet ef --startup-project ..\SilverForest.Api\ database update

@@ -1,6 +1,9 @@
 ﻿using Serilog;
 using SilverForest.Infrastructure;
-using Microsoft.EntityFrameworkCore.Design;
+using HealthChecks.UI.Core;
+using Microsoft.Extensions.DependencyInjection;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 namespace SilverForest.Api;
 
@@ -12,6 +15,10 @@ public static class ConfigureServices
             => configuration.ReadFrom.Configuration(context.Configuration));
 
         builder.Services.AddInfrastructureServices(builder.Configuration);
+
+        builder.Services
+            .AddHealthChecksUI()
+            .AddInMemoryStorage();
 
         builder.Services.AddControllers();
 
@@ -39,8 +46,13 @@ public static class ConfigureServices
         app.UseRouting()
             .UseEndpoints(endpoints =>
             {
-                endpoints.MapHealthChecks("/health");
+                endpoints.MapHealthChecks("/health", new HealthCheckOptions
+                {
+                    Predicate = _ => true,
+                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                });
                 endpoints.MapControllers();
+                endpoints.MapHealthChecksUI();
             });
 
         return app;
