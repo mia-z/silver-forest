@@ -16,4 +16,9 @@
     <PackageReference Include="coverlet.collector" Version="3.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SilverForest.Api\SilverForest.Api.csproj" />
+    <ProjectReference Include="..\SilverForest.Common\SilverForest.Common.csproj" />
+  </ItemGroup>
+
 </Project>
