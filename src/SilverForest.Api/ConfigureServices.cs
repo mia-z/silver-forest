@@ -4,6 +4,11 @@ using HealthChecks.UI.Core;
 using Microsoft.Extensions.DependencyInjection;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using SilverForest.Api.Services;
+using System.Text.Json.Serialization;
 
 namespace SilverForest.Api;
 
@@ -20,7 +25,28 @@ public static class ConfigureServices
             .AddHealthChecksUI()
             .AddInMemoryStorage();
 
-        builder.Services.AddControllers();
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(o =>
+            {
+                o.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+                };
+            });
+
+        builder.Services.AddScoped<JwtService>();
+
+        builder.Services.AddControllers()
+            .AddJsonOptions(o =>
+            {
+                o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+            });
 
         return builder;
     }
@@ -43,7 +69,10 @@ public static class ConfigureServices
 
         app.UseHttpsRedirection();
 
+        app.UseAuthentication();
+
         app.UseRouting()
+            .UseAuthorization()
             .UseEndpoints(endpoints =>
             {
                 endpoints.MapHealthChecks("/health", new HealthCheckOptions
