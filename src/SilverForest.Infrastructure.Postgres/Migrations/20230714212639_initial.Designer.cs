@@ -11,7 +11,7 @@ using SilverForest.Infrastructure.Postgres.Services;
 namespace SilverForest.Infrastructure.Postgres.Migrations
 {
     [DbContext(typeof(SilverForestDbContext))]
-    [Migration("20230710202759_initial")]
+    [Migration("20230714212639_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -32,7 +32,11 @@ namespace SilverForest.Infrastructure.Postgres.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Username")
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
