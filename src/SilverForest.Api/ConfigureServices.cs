@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using SilverForest.Api.Services;
 using System.Text.Json.Serialization;
-using SilverForest.Api.Abstraction;
+using SilverForest.Api.Abstraction.Interfaces;
 
 namespace SilverForest.Api;
 
