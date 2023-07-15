@@ -1,11 +1,12 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using SilverForest.Api.Abstraction;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
 namespace SilverForest.Api.Services;
 
-public class JwtService
+public class JwtService : IJwtService
 {
     private readonly ILogger<JwtService> _logger;
     private readonly SigningCredentials credentials;

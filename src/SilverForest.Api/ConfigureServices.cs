@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using SilverForest.Api.Services;
 using System.Text.Json.Serialization;
+using SilverForest.Api.Abstraction;
 
 namespace SilverForest.Api;
 
@@ -40,7 +41,7 @@ public static class ConfigureServices
                 };
             });
 
-        builder.Services.AddScoped<JwtService>();
+        builder.Services.AddScoped<IJwtService, JwtService>();
 
         builder.Services.AddControllers()
             .AddJsonOptions(o =>

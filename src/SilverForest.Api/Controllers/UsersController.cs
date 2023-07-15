@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SilverForest.Api.Services;
+using SilverForest.Api.Abstraction;
 using SilverForest.Common.Models;
 using SilverForest.Infrastructure.Postgres.Abstraction;
-using SilverForest.Infrastructure.Postgres.Services;
 
 namespace SilverForest.Api.Controllers;
 
@@ -14,9 +13,9 @@ public class UsersController : ControllerBase
 {
     private readonly ILogger<UsersController> _logger;
     private readonly IUsersRepository _users;
-    private readonly JwtService _jwt;
+    private readonly IJwtService _jwt;
 
-    public UsersController(IUsersRepository users, ILogger<UsersController> logger, JwtService jwt)
+    public UsersController(IUsersRepository users, ILogger<UsersController> logger, IJwtService jwt)
     {
         _logger = logger;
         _users = users;
