@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SilverForest.Api.Abstraction;
+using SilverForest.Api.Abstraction.Interfaces;
 using SilverForest.Common.Models;
 using SilverForest.Infrastructure.Postgres.Abstraction;
 
@@ -9,7 +10,7 @@ namespace SilverForest.Api.Controllers;
 [ApiController]
 [Route("[controller]/[action]")]
 [Authorize]
-public class UsersController : ControllerBase
+public class UsersController : SilverForestApiControllerBase
 {
     private readonly ILogger<UsersController> _logger;
     private readonly IUsersRepository _users;
@@ -25,9 +26,7 @@ public class UsersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Me()
     {
-        var currentUserId = HttpContext.User.Claims.FirstOrDefault(x => x.Type == "Id");
-
-        var user = await _users.GetUserById(Convert.ToInt32(currentUserId?.Value));
+        var user = await _users.GetUserById(currentUserId);
 
         return Ok(user);
     }
