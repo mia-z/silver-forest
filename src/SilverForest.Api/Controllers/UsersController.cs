@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SilverForest.Api.Services;
 using SilverForest.Common.Models;
+using SilverForest.Infrastructure.Postgres.Abstraction;
 using SilverForest.Infrastructure.Postgres.Services;
 
 namespace SilverForest.Api.Controllers;
@@ -12,13 +13,13 @@ namespace SilverForest.Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly ILogger<UsersController> _logger;
-    private readonly SilverForestDbContext _context;
+    private readonly IUsersRepository _users;
     private readonly JwtService _jwt;
 
-    public UsersController(SilverForestDbContext context, ILogger<UsersController> logger, JwtService jwt)
+    public UsersController(IUsersRepository users, ILogger<UsersController> logger, JwtService jwt)
     {
         _logger = logger;
-        _context = context;
+        _users = users;
         _jwt = jwt;
     }
 
@@ -27,7 +28,7 @@ public class UsersController : ControllerBase
     {
         var currentUserId = HttpContext.User.Claims.FirstOrDefault(x => x.Type == "Id");
 
-        var user = await _context.Users.FindAsync(Convert.ToInt32(currentUserId?.Value));
+        var user = await _users.GetUserById(Convert.ToInt32(currentUserId?.Value));
 
         return Ok(user);
     }
@@ -36,15 +37,13 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateUser(User user)
     {
-        var newUser = await _context.Users.AddAsync(user);
+        var newUserId = await _users.CreateUser(user);
 
-        var rows = await _context.SaveChangesAsync();
-
-        if (rows > 0)
+        if (newUserId > 0)
         {
-            var token =_jwt.GenerateJsonWebToken(newUser.Entity.Id);
+            var token =_jwt.GenerateJsonWebToken(newUserId);
 
-            return Created($"/users/{newUser.Entity.Id}", token);
+            return Created($"/users/{newUserId}", token);
         } else
         {
             return BadRequest("Couldnt create account");
