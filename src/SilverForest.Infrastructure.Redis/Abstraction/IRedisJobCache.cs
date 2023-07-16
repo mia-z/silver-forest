@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SilverForest.Common.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +9,6 @@ namespace SilverForest.Infrastructure.Redis.Abstraction;
 
 public interface IRedisJobCache
 {
-    public Task<bool> AddJob(string name, int id);
+    Task<bool> AddJob(string name, int id);
+    Task<IEnumerable<SkillJob>> GetJobsById(int id);
 }

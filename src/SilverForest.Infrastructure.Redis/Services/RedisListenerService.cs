@@ -23,13 +23,10 @@ public class RedisListenerService : IHostedService, IDisposable
         _logger.LogInformation($"Starting RedisListener Service");
 
         _logger.LogInformation($"Creating JobQueue Subscriber");
-
         _muxer.GetSubscriber().Subscribe(new RedisChannel("__keyspace@0__:JobQueue:*", RedisChannel.PatternMode.Auto), async (channel, message) =>
         {
             if (message.ToString() == "zadd")
             {
-                _logger.LogInformation($"SUB: Channel: {channel}");
-
                 var (_, key) = channel.ToString().Split(":", 2) switch
                 {
                     [var ns, var k] => (ns, k),
@@ -37,42 +34,28 @@ public class RedisListenerService : IHostedService, IDisposable
                 };
 
                 var jobEntry = await _db.SortedSetRangeByScoreWithScoresAsync(key, 1);
-                if (jobEntry.Length > 1)
-                {
-                    _logger.LogInformation("Has jobs queued in: " + key.Split(":", 2)[1]);
-                }
-                else
+                if (jobEntry.Length == 1)
                 {
                     var id = key.Split(":", 2)[1];
-                    _logger.LogInformation($"No jobs queued for ID {id}, will add expiry to newest");
-
                     var expiryKey = await _db.StringSetAsync($"JobExpiry:{id}", "", expiry: TimeSpan.FromSeconds(3));
                 }
             }            
         });
+
+        _logger.LogInformation($"Creating JobQueue Expiry Subscriber");
         _muxer.GetSubscriber().Subscribe(new RedisChannel("__keyevent@0__:expired", RedisChannel.PatternMode.Auto), async (channel, message) =>
         {
             if (channel.ToString().EndsWith(":expired"))
             {
-                _logger.LogInformation($"SUB: Channel: {channel}, Message: {message}");
-
                 var latestJob = await _db.SortedSetPopAsync($"JobQueue:{message.ToString().Split(":", 2)[1]}");
-                _logger.LogInformation($"Here I would do something with the data: {latestJob.Value.Element}");
+                //TODO: Do something with the data in latest job since it's been popped
 
                 var setEntries = await _db.SortedSetRangeByScoreWithScoresAsync($"JobQueue:{message.ToString().Split(":", 2)[1]}", 1);
-                if (setEntries.Length < 1)
+                if (setEntries.Length > 0)
                 {
-                    _logger.LogInformation("No more jobs queued for this user");
-                }
-                else
-                {
-                    _logger.LogInformation($"Found more jobs, queueing next..");
                     var expiryKey = await _db.StringSetAsync($"JobExpiry:{message.ToString().Split(":", 2)[1]}", "", expiry: TimeSpan.FromSeconds(3));
                 }
-            } else
-            {
-               _logger.LogInformation($"Unrelated expire event ??????");
-            }            
+            }           
         });
 
         _logger.LogInformation($"Started RedisListener Service");
