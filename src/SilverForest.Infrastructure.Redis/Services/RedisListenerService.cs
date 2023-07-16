@@ -23,11 +23,13 @@ public class RedisListenerService : IHostedService, IDisposable
         _logger.LogInformation($"Starting RedisListener Service");
 
         _logger.LogInformation($"Creating JobQueue Subscriber");
-        _muxer.GetSubscriber().Subscribe("__keyspace@0__:JobQueue:*", async (channel, message) =>
+
+        _muxer.GetSubscriber().Subscribe(new RedisChannel("__keyspace@0__:JobQueue:*", RedisChannel.PatternMode.Auto), async (channel, message) =>
         {
             if (message.ToString() == "zadd")
             {
                 _logger.LogInformation($"SUB: Channel: {channel}");
+
                 var (_, key) = channel.ToString().Split(":", 2) switch
                 {
                     [var ns, var k] => (ns, k),
@@ -48,12 +50,12 @@ public class RedisListenerService : IHostedService, IDisposable
                 }
             }            
         });
-        _muxer.GetSubscriber().Subscribe("__keyevent@0__:expired", async (channel, message) =>
+        _muxer.GetSubscriber().Subscribe(new RedisChannel("__keyevent@0__:expired", RedisChannel.PatternMode.Auto), async (channel, message) =>
         {
-            _logger.LogInformation($"SUB: Channel: {channel}, Message: {message}");
-
             if (channel.ToString().EndsWith(":expired"))
             {
+                _logger.LogInformation($"SUB: Channel: {channel}, Message: {message}");
+
                 var latestJob = await _db.SortedSetPopAsync($"JobQueue:{message.ToString().Split(":", 2)[1]}");
                 _logger.LogInformation($"Here I would do something with the data: {latestJob.Value.Element}");
 
