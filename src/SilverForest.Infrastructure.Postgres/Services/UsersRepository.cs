@@ -35,7 +35,7 @@ internal class UsersRepository : IUsersRepository
 
             var rows = await _context.SaveChangesAsync();
 
-            if (rows < 1)
+            if (rows > 0)
             {
                 _logger.LogInformation($"Created new user: {user.Name}, {user.Email}");
                 return newUser.Entity.Id;
