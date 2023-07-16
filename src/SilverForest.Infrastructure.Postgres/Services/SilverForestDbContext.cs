@@ -19,7 +19,7 @@ public class SilverForestDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<User>().HasData(new User { Id = 0, Name = "Admin", Email = "ryan@miaz.xyz" });
+        modelBuilder.Entity<User>().HasData(new User { Id = -1, Name = "Admin", Email = "ryan@miaz.xyz" });
 
         modelBuilder.Entity<Skill>().HasData(new Skill { Id = 1, Name = "Forestry" } );
     }
