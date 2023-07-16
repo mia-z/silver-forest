@@ -5,7 +5,7 @@ services:
     restart: always
     ports:
       - "6379:6379"
-    command: redis-server --save 20 1 --loglevel warning --requirepass 123456
+    command: redis-server --save 20 1 --loglevel warning --requirepass 123456 --notify-keyspace-events KEA
     volumes: 
       - redis:/data
   postgres:
