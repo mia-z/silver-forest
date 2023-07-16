@@ -2,8 +2,11 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SilverForest.Api.Abstraction;
+using SilverForest.Common.Models;
 using SilverForest.Common.Requests;
 using SilverForest.Infrastructure.Redis.Abstraction;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text.Json;
 
 namespace SilverForest.Api.Controllers;
 
@@ -29,7 +32,20 @@ public class ForestryController : SilverForestApiControllerBase
             return BadRequest();
         }
 
-        await _cache.AddJob(Guid.NewGuid().ToString(), req.Id);
+        var j = new SkillJob()
+        {
+            PlayerId = currentUserId(),
+            Guid = Guid.NewGuid(),
+            Skill = new Skill()
+            {
+                Name = "Forestry"
+            },
+            ExpireTime = TimeSpan.FromSeconds(5)
+        };
+
+        var jobJson = JsonSerializer.Serialize(j);
+
+        await _cache.AddJob(jobJson, currentUserId());
         return Ok();
     }
 }
