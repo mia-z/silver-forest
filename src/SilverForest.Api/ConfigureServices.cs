@@ -10,16 +10,18 @@ using System.Text;
 using SilverForest.Api.Services;
 using System.Text.Json.Serialization;
 using SilverForest.Api.Abstraction.Interfaces;
+using Serilog.Extensions.Logging;
+using Microsoft.Extensions.Logging.Configuration;
+using Microsoft.AspNetCore.Hosting;
+using Serilog.Events;
+using Serilog.Formatting.Compact;
 
 namespace SilverForest.Api;
 
 public static class ConfigureServices
 {
     public static WebApplicationBuilder AddApiServices(this WebApplicationBuilder builder)
-    {
-        builder.Host.UseSerilog((context, configuration) 
-            => configuration.ReadFrom.Configuration(context.Configuration));
-
+    {   
         builder.Services.AddInfrastructureServices(builder.Configuration);
 
         builder.Services
@@ -56,7 +58,18 @@ public static class ConfigureServices
     {
         if (app is null) throw new ArgumentNullException(nameof(app));
 
-        app.UseSerilogRequestLogging();
+        app.UseSerilogRequestLogging(options =>
+        {
+            // Exclude endpoint logging for HealthCheck endpoints
+            options.GetLevel = (ctx, elapsed, ex) =>
+            {
+                if (ctx.Request.Path.StartsWithSegments("/health"))
+                {
+                    return LogEventLevel.Verbose;
+                }
+                return LogEventLevel.Information;
+            };
+        });
 
         if (app.Environment.IsDevelopment())
         {

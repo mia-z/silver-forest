@@ -1,8 +1,18 @@
+using Serilog;
 using SilverForest.Api;
 
-await WebApplication
-    .CreateBuilder(args)
-    .AddApiServices()
-    .Build()
-    .ConfigureApplication()
-    .RunAsync();
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.ConfigureDefaults(args)
+    .UseSerilog((ctx, config) =>
+    {
+        config.ReadFrom.Configuration(ctx.Configuration);
+    });
+
+builder.AddApiServices();
+
+var app = builder.Build();
+
+app.ConfigureApplication();
+
+await app.RunAsync();
