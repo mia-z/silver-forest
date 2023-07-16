@@ -1,16 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using SilverForest.Api.Filters;
 
 namespace SilverForest.Api.Abstraction
 {
+    [UserContextFilter]
     public class SilverForestApiControllerBase : ControllerBase
     {
-        internal readonly int currentUserId;
+        internal int currentUserId()
+        {
+            return int.Parse(RouteData.Values["UserId"].ToString());
+        }
+
         internal SilverForestApiControllerBase()
         {
-            if (int.TryParse(HttpContext?.User?.Claims?.FirstOrDefault(x => x.Type == "Id")?.Value, out int id))
-                currentUserId = id;
-            else
-                currentUserId = -1;
+            //    
         }
     }
 }
